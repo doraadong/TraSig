@@ -1,2 +1,2 @@
 # TraSig 
-(*Tra*jectory-based *Sig*naling genes inference)
+(*Tra*jectory-based *Sig*nalling genes inference)
