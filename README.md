@@ -46,7 +46,7 @@ conda install pip
 Then install TraSig, together with all its dependencies by: 
 
 ```shell
-pip install --upgrade  https://github.com/doraadong/TraSig/tarball/master
+pip install git+https://github.com/doraadong/TraSig.git
 ```
 
 ### Not using virtural environment
@@ -54,7 +54,7 @@ pip install --upgrade  https://github.com/doraadong/TraSig/tarball/master
 If you prefer not to use a virtual envrionment, then you may install TraSig and its dependencies by (may need to use **sudo**): 
 
 ```shell
-pip3 install --upgrade  https://github.com/doraadong/TraSig/tarball/master
+pip3 install git+https://github.com/doraadong/TraSig.git
 ```
 
 You may find where the package is installed by:
