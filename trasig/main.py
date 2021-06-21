@@ -6,7 +6,6 @@
 
 import argparse
 import pickle
-import sys
 import os
 import gc
 import copy
@@ -271,7 +270,7 @@ def process_per_permutation(ns, save=False):
     return _counts
 
 
-if __name__ == '__main__':
+def main():
     # parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', required=True, default='../input/')
@@ -435,3 +434,7 @@ if __name__ == '__main__':
 
     with open(data_file, 'wb') as handle:
         pickle.dump(pair2counts, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+if __name__ == '__main__':
+    main()
