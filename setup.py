@@ -54,7 +54,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=['trasig'],
-    entry_points={'console_scripts': ['trasig=trasig.trasig:main']},
+    entry_points={'console_scripts': ['trasig=trasig.main']},
     install_requires=REQUIRED,
     include_package_data=True,
     license='MIT',
