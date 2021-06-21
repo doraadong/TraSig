@@ -60,7 +60,7 @@ pip3 install git+https://github.com/doraadong/TraSig.git
 You may find where the package is installed by:
  
 ```shell
-pip show messi
+pip show trasig
 ```
 
 # Command-line 
@@ -70,7 +70,7 @@ Run TraSig by (arguments are taken for example):
 ```shell
 trasig -i ../input/ -o ../output/ -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot 
 ```
-The usage of this file is listed as follows:  
+The usage of this command is listed as follows:  
 
 ```shell
 usage: trasig [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b MODELNAME
