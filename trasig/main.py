@@ -294,10 +294,10 @@ if __name__ == '__main__':
                         default=10000, help="integer, optional, number of permutations, default 10000")
     parser.add_argument('-p', '--multiProcess', required=False, type=str2bool,
                         default=True, help="boolean, optional, if use multi-processing, default True")
-    parser.add_argument('-c', '--ncores', required=False, default=4, help="integer, optional, number of cores to use"
+    parser.add_argument('-c', '--ncores', required=False, default=4, help="integer, optional, number of cores to use "
                                                                           "for multi-processing")
     parser.add_argument('-s', '--startingTreatment', required=False,
-                        default="None", help="string, optional, way to treat values at the begining of an edge with "
+                        default="None", help="string, optional, way to treat values at the beginning of an edge with "
                                              "sliding window size smaller than nLap, "
                                              "parent (need to provide also 'path_info.pickle')/discard/smallerWindow, "
                                              "default None")
