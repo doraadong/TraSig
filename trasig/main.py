@@ -17,257 +17,6 @@ import pandas as pd
 from trasig.trasig import trasig
 from trasig.utils import MPR, str2bool
 
-# multi-threading function
-def process_per_permutation(ns, save=False):
-    """
-
-    Given expressions and a particular cluster assignment, calculate the metrics.
-
-    Global: results, cell_paths_o, cell_times_o, cell_exps, unique_paths, time2path,
-    path2time, all_times, metrics, n_lap, nan2zero, gene_names
-
-    Parameters
-    ----------
-    ns: list or generator
-        permutation indexes
-
-    """
-    saveCounts = True
-
-    try:
-        _counts = copy.deepcopy(pair2counts)
-    except NameError:  # when the true results not exist
-        saveCounts = False
-        _counts = None
-
-    for _n in ns:
-
-        if _n != 0:  # run permutation
-            cell_paths, cell_times = calculator.generate_permutation(_n)
-        else:
-            cell_paths, cell_times = cell_paths_o, cell_times_o
-
-        # path to idx
-        path2idx = dict.fromkeys(unique_paths)
-
-        # get sum expression & number of cells per bin (time)
-        exp = []
-        count = []
-
-        for i, cur_path in enumerate(unique_paths):
-            # get data corresponding to a path
-            condition = cell_paths == cur_path
-            cur_exp = cell_exps[condition]
-            cur_time = cell_times[condition]
-
-            # inspect how many cells assigned to each location(time on path)
-            df_exp = pd.DataFrame(cur_exp[:, 0])
-            df_exp['time'] = cur_time  # all values has 2 digits in the dataframe
-            count_bin = df_exp.groupby('time').count()
-            count_bin.reset_index(inplace=True)
-
-            # get sum expression per gene per bin/time
-            df_exp = pd.DataFrame(cur_exp)
-            df_exp['time'] = cur_time  # all values has 2 digits in the dataframe
-            sum_bin = df_exp.groupby('time').sum()
-            sum_bin.reset_index(inplace=True)
-
-            # get all available bins
-            df_at = pd.DataFrame(all_times)  # all values has 2 digits in the dataframe
-            df_at.columns = ['time']
-
-            # get full set of expression for all bins; assign np.nan if no cells
-            sum_full = sum_bin.merge(df_at, on='time', how='right')
-            sum_full.sort_values('time', inplace=True)
-            sum_full.reset_index(inplace=True, drop=True)
-            sum_full.drop(['time'], axis=1, inplace=True)
-
-            # get full set of counts per bins; assign np.nan if no cells
-            count_full = count_bin.merge(df_at, on='time', how='right')
-            count_full.sort_values('time', inplace=True)
-            count_full.reset_index(inplace=True, drop=True)
-            count_full.drop(['time'], axis=1, inplace=True)
-
-            exp.append(sum_full.values[:, None])
-            count.append(count_full.iloc[:, 0].values[:, None])
-            path2idx[cur_path] = i
-
-        exp = np.concatenate(exp, axis=1)  # bin size x number of paths x genes
-        count = np.concatenate(count, axis=1)  # bin size x number of paths
-
-        # deal with initial several values (with window size smaller than n_lap)
-        if startingTreatment == "parent":
-
-            n_bins = exp.shape[0]
-            n_genes = exp.shape[2]
-
-            filename = f"path_info_{project}{_preprocess}_{model_name}.pickle"
-            with open(os.path.join(input_path, filename), 'rb') as handle:
-                path_info = pickle.load(handle, encoding="latin1")
-
-            exps_parent = dict.fromkeys(unique_paths)
-            counts_parent = dict.fromkeys(unique_paths)
-
-            # for each path, find its parent's expression
-            for i, path in enumerate(path_info):
-
-                try:
-                    exp_parent = exp[:, path2idx[path['parent_path']], :]  # use idx instead; not path"ID"
-                    count_parent = count[:, path2idx[path['parent_path']]]
-                except KeyError:
-                    exp_parent = np.zeros((n_bins, n_genes))
-                    count_parent = np.zeros((n_bins))
-
-                exps_parent[path['ID']] = exp_parent
-                counts_parent[path['ID']] = count_parent
-
-            # append parent's expression to the path
-            exps_with_parent = []
-            counts_with_parent = []
-
-            for i, cur_path in enumerate(unique_paths):
-                cur_exp = exp[:, i, :]
-                exp_parent = exps_parent[cur_path]
-
-                exp_with_parent = np.concatenate([exp_parent, cur_exp], axis=0)
-
-                cur_count = count[:, i]
-                count_parent = counts_parent[cur_path]
-
-                count_with_parent = np.concatenate([count_parent, cur_count], axis=0)
-
-                exps_with_parent.append(exp_with_parent[:, None])
-                counts_with_parent.append(count_with_parent[:, None])
-
-            exp = np.concatenate(exps_with_parent, axis=1)  # bin size x number of paths x genes
-            count = np.concatenate(counts_with_parent, axis=1)  # bin size x number of paths x genes
-
-        elif startingTreatment == "smallerWindow":
-            if n_lap > 1:
-                smaller_n_lap = int(n_lap / 2)
-            else:
-                smaller_n_lap = 1
-
-                # calculate move mean for a smaller window size
-            _exp_sum = bn.move_sum(exp, window=smaller_n_lap, min_count=1, axis=0)
-            _count_sum = bn.move_sum(count, window=smaller_n_lap, min_count=1, axis=0)
-            exp_smaller = _exp_sum / _count_sum[:, :, None]
-
-            if nan2zero:
-                exp_smaller = np.nan_to_num(exp_smaller)
-
-        else:
-            pass
-
-        del cell_paths
-        del cell_times
-        del cur_exp
-        del cur_time
-        del df_exp
-        del count_bin
-        del sum_bin
-        del df_at
-        del sum_full
-        del count_full
-        # collect unused variables
-        gc.collect()
-
-        # get expressions over a window
-        # still hold the space for the 1st few elements where window size is not large enough
-        # min_count=1: still calculate for the 1st few elements even though the length is small than n_lap
-        # also, np.nan is ignored as long as 1 element is not nan
-        _exp_sum = bn.move_sum(exp, window=n_lap, min_count=1, axis=0)
-        _count_sum = bn.move_sum(count, window=n_lap, min_count=1, axis=0)
-        exp = _exp_sum / _count_sum[:, :, None]
-
-        if nan2zero:
-            exp = np.nan_to_num(exp)
-
-        if startingTreatment == "parent":
-            exp = exp[n_bins:, :, :]  # remove parenting values
-
-            del exps_with_parent
-            del counts_with_parent
-            del exp_with_parent
-            del count_with_parent
-            del exps_parent
-            del counts_parent
-            gc.collect()
-
-        elif startingTreatment == "discard":
-            exp = exp[n_lap:, :, :]
-
-        elif startingTreatment == "smallerWindow":
-            exp = exp[n_lap:, :, :]
-            exp = np.concatenate([exp_smaller[smaller_n_lap:n_lap, :, :], exp], axis=0)
-
-            del exp_smaller
-            gc.collect()
-        else:
-            pass
-
-        del _exp_sum
-        del _count_sum
-        # collect unused variables
-        gc.collect()
-
-        # build pair-up sender and receiver expressions
-        _sender = []
-        _receiver = []
-
-        for i in interaction_list:
-            ligand = i[0]
-            receptor = i[1]
-
-            _sender.append(exp[:, :, gene_names.index(ligand)][:, :, None])
-            _receiver.append(exp[:, :, gene_names.index(receptor)][:, :, None])
-
-        _sender = np.concatenate(_sender, axis=2)
-        _receiver = np.concatenate(_receiver, axis=2)
-
-        del exp
-        # collect unused variables
-        gc.collect()
-
-        # split into paths (TBD: faster if not split; check enisum)
-        sender_exp = {}
-        receiver_exp = {}
-
-        # for each path, prepare a sender and a receiver expressions
-        for i, cur_path in enumerate(unique_paths):
-            sender_exp[cur_path] = _sender[:, i, :]
-            receiver_exp[cur_path] = _receiver[:, i, :]
-
-        # changed to propress per pair of path?
-        all_path_results = {}
-        for cur_path in unique_paths:
-            i = calculator.process_per_path(cur_path, sender_exp, receiver_exp)
-            all_path_results.update(i)
-
-        # save results
-        if save:
-            filename = f"{suffix}_metrics_{_n}.pickle"
-            data_file = os.path.join(output_path, filename)
-            with open(data_file, 'wb') as handle:
-                pickle.dump(all_path_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-        # update counts
-        if saveCounts:
-            for pair, mets in all_path_results.items():
-                for m in metrics:
-                    _add = np.array((mets[m] >= results[pair][m]) * 1)
-                    _counts[pair][m] += _add
-
-        del all_path_results
-        del sender_exp
-        del receiver_exp
-        del _sender
-        del _receiver
-
-        # collect unused variables
-        gc.collect()
-
-    return _counts
 
 
 def main():
@@ -376,6 +125,261 @@ def main():
 
     # initialize trasig
     calculator = trasig(metrics, time2path, path2time, cell_times_o, cell_paths_o, unique_paths)
+
+
+    # define helper function to process each permutation
+    # multi-threading function
+    def process_per_permutation(ns, save=False):
+        """
+
+        Given expressions and a particular cluster assignment, calculate the metrics.
+
+        Global: results, cell_paths_o, cell_times_o, cell_exps, unique_paths, time2path,
+        path2time, all_times, metrics, n_lap, nan2zero, gene_names
+
+        Parameters
+        ----------
+        ns: list or generator
+            permutation indexes
+
+        """
+        saveCounts = True
+
+        try:
+            _counts = copy.deepcopy(pair2counts)
+        except NameError:  # when the true results not exist
+            saveCounts = False
+            _counts = None
+
+        for _n in ns:
+
+            if _n != 0:  # run permutation
+                cell_paths, cell_times = calculator.generate_permutation(_n)
+            else:
+                cell_paths, cell_times = cell_paths_o, cell_times_o
+
+            # path to idx
+            path2idx = dict.fromkeys(unique_paths)
+
+            # get sum expression & number of cells per bin (time)
+            exp = []
+            count = []
+
+            for i, cur_path in enumerate(unique_paths):
+                # get data corresponding to a path
+                condition = cell_paths == cur_path
+                cur_exp = cell_exps[condition]
+                cur_time = cell_times[condition]
+
+                # inspect how many cells assigned to each location(time on path)
+                df_exp = pd.DataFrame(cur_exp[:, 0])
+                df_exp['time'] = cur_time  # all values has 2 digits in the dataframe
+                count_bin = df_exp.groupby('time').count()
+                count_bin.reset_index(inplace=True)
+
+                # get sum expression per gene per bin/time
+                df_exp = pd.DataFrame(cur_exp)
+                df_exp['time'] = cur_time  # all values has 2 digits in the dataframe
+                sum_bin = df_exp.groupby('time').sum()
+                sum_bin.reset_index(inplace=True)
+
+                # get all available bins
+                df_at = pd.DataFrame(all_times)  # all values has 2 digits in the dataframe
+                df_at.columns = ['time']
+
+                # get full set of expression for all bins; assign np.nan if no cells
+                sum_full = sum_bin.merge(df_at, on='time', how='right')
+                sum_full.sort_values('time', inplace=True)
+                sum_full.reset_index(inplace=True, drop=True)
+                sum_full.drop(['time'], axis=1, inplace=True)
+
+                # get full set of counts per bins; assign np.nan if no cells
+                count_full = count_bin.merge(df_at, on='time', how='right')
+                count_full.sort_values('time', inplace=True)
+                count_full.reset_index(inplace=True, drop=True)
+                count_full.drop(['time'], axis=1, inplace=True)
+
+                exp.append(sum_full.values[:, None])
+                count.append(count_full.iloc[:, 0].values[:, None])
+                path2idx[cur_path] = i
+
+            exp = np.concatenate(exp, axis=1)  # bin size x number of paths x genes
+            count = np.concatenate(count, axis=1)  # bin size x number of paths
+
+            # deal with initial several values (with window size smaller than n_lap)
+            if startingTreatment == "parent":
+
+                n_bins = exp.shape[0]
+                n_genes = exp.shape[2]
+
+                filename = f"path_info_{project}{_preprocess}_{model_name}.pickle"
+                with open(os.path.join(input_path, filename), 'rb') as handle:
+                    path_info = pickle.load(handle, encoding="latin1")
+
+                exps_parent = dict.fromkeys(unique_paths)
+                counts_parent = dict.fromkeys(unique_paths)
+
+                # for each path, find its parent's expression
+                for i, path in enumerate(path_info):
+
+                    try:
+                        exp_parent = exp[:, path2idx[path['parent_path']], :]  # use idx instead; not path"ID"
+                        count_parent = count[:, path2idx[path['parent_path']]]
+                    except KeyError:
+                        exp_parent = np.zeros((n_bins, n_genes))
+                        count_parent = np.zeros((n_bins))
+
+                    exps_parent[path['ID']] = exp_parent
+                    counts_parent[path['ID']] = count_parent
+
+                # append parent's expression to the path
+                exps_with_parent = []
+                counts_with_parent = []
+
+                for i, cur_path in enumerate(unique_paths):
+                    cur_exp = exp[:, i, :]
+                    exp_parent = exps_parent[cur_path]
+
+                    exp_with_parent = np.concatenate([exp_parent, cur_exp], axis=0)
+
+                    cur_count = count[:, i]
+                    count_parent = counts_parent[cur_path]
+
+                    count_with_parent = np.concatenate([count_parent, cur_count], axis=0)
+
+                    exps_with_parent.append(exp_with_parent[:, None])
+                    counts_with_parent.append(count_with_parent[:, None])
+
+                exp = np.concatenate(exps_with_parent, axis=1)  # bin size x number of paths x genes
+                count = np.concatenate(counts_with_parent, axis=1)  # bin size x number of paths x genes
+
+            elif startingTreatment == "smallerWindow":
+                if n_lap > 1:
+                    smaller_n_lap = int(n_lap / 2)
+                else:
+                    smaller_n_lap = 1
+
+                    # calculate move mean for a smaller window size
+                _exp_sum = bn.move_sum(exp, window=smaller_n_lap, min_count=1, axis=0)
+                _count_sum = bn.move_sum(count, window=smaller_n_lap, min_count=1, axis=0)
+                exp_smaller = _exp_sum / _count_sum[:, :, None]
+
+                if nan2zero:
+                    exp_smaller = np.nan_to_num(exp_smaller)
+
+            else:
+                pass
+
+            del cell_paths
+            del cell_times
+            del cur_exp
+            del cur_time
+            del df_exp
+            del count_bin
+            del sum_bin
+            del df_at
+            del sum_full
+            del count_full
+            # collect unused variables
+            gc.collect()
+
+            # get expressions over a window
+            # still hold the space for the 1st few elements where window size is not large enough
+            # min_count=1: still calculate for the 1st few elements even though the length is small than n_lap
+            # also, np.nan is ignored as long as 1 element is not nan
+            _exp_sum = bn.move_sum(exp, window=n_lap, min_count=1, axis=0)
+            _count_sum = bn.move_sum(count, window=n_lap, min_count=1, axis=0)
+            exp = _exp_sum / _count_sum[:, :, None]
+
+            if nan2zero:
+                exp = np.nan_to_num(exp)
+
+            if startingTreatment == "parent":
+                exp = exp[n_bins:, :, :]  # remove parenting values
+
+                del exps_with_parent
+                del counts_with_parent
+                del exp_with_parent
+                del count_with_parent
+                del exps_parent
+                del counts_parent
+                gc.collect()
+
+            elif startingTreatment == "discard":
+                exp = exp[n_lap:, :, :]
+
+            elif startingTreatment == "smallerWindow":
+                exp = exp[n_lap:, :, :]
+                exp = np.concatenate([exp_smaller[smaller_n_lap:n_lap, :, :], exp], axis=0)
+
+                del exp_smaller
+                gc.collect()
+            else:
+                pass
+
+            del _exp_sum
+            del _count_sum
+            # collect unused variables
+            gc.collect()
+
+            # build pair-up sender and receiver expressions
+            _sender = []
+            _receiver = []
+
+            for i in interaction_list:
+                ligand = i[0]
+                receptor = i[1]
+
+                _sender.append(exp[:, :, gene_names.index(ligand)][:, :, None])
+                _receiver.append(exp[:, :, gene_names.index(receptor)][:, :, None])
+
+            _sender = np.concatenate(_sender, axis=2)
+            _receiver = np.concatenate(_receiver, axis=2)
+
+            del exp
+            # collect unused variables
+            gc.collect()
+
+            # split into paths (TBD: faster if not split; check enisum)
+            sender_exp = {}
+            receiver_exp = {}
+
+            # for each path, prepare a sender and a receiver expressions
+            for i, cur_path in enumerate(unique_paths):
+                sender_exp[cur_path] = _sender[:, i, :]
+                receiver_exp[cur_path] = _receiver[:, i, :]
+
+            # changed to propress per pair of path?
+            all_path_results = {}
+            for cur_path in unique_paths:
+                i = calculator.process_per_path(cur_path, sender_exp, receiver_exp)
+                all_path_results.update(i)
+
+            # save results
+            if save:
+                filename = f"{suffix}_metrics_{_n}.pickle"
+                data_file = os.path.join(output_path, filename)
+                with open(data_file, 'wb') as handle:
+                    pickle.dump(all_path_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+            # update counts
+            if saveCounts:
+                for pair, mets in all_path_results.items():
+                    for m in metrics:
+                        _add = np.array((mets[m] >= results[pair][m]) * 1)
+                        _counts[pair][m] += _add
+
+            del all_path_results
+            del sender_exp
+            del receiver_exp
+            del _sender
+            del _receiver
+
+            # collect unused variables
+            gc.collect()
+
+        return _counts
+    
 
     # load the original data
     _n = 0
