@@ -68,42 +68,49 @@ pip show trasig
 Run TraSig by (arguments are taken for example): 
 
 ```shell
-trasig -i ../input/ -o ../output/ -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot 
+main.py -i input -o output -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot -n 100
 ```
 The usage of this command is listed as follows:  
 
 ```shell
-usage: trasig [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b MODELNAME
-              [-t LISTTYPE] [-l NLAP] [-m METRIC] [-z NAN2ZERO] [-n NUMPERMS]
-              [-p MULTIPROCESS] [-c NCORES] [-s STARTINGTREATMENT]
+usage: main.py [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b MODELNAME
+               [-t LISTTYPE] [-l NLAP] [-m METRIC] [-z NAN2ZERO] [-n NUMPERMS]
+               [-p MULTIPROCESS] [-c NCORES] [-s STARTINGTREATMENT]
 
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
+                        string, folder to find inputs
   -o OUTPUT, --output OUTPUT
+                        string, folder to put outputs
   -d PROJECT, --project PROJECT
                         string, project name
   -g PREPROCESS, --preprocess PREPROCESS
-                        string
+                        string, preprocessing steps applied to the data /
+                        project, default None
   -b MODELNAME, --modelName MODELNAME
-                        string, identifier for the model
+                        string, name of the trajectory model
   -t LISTTYPE, --listType LISTTYPE
-                        string
-  -l NLAP, --nLap NLAP  integer
+                        string, optional, interaction list type, default
+                        ligand_receptor
+  -l NLAP, --nLap NLAP  integer, optional, sliding window size, default 20
   -m METRIC, --metric METRIC
-                        string
+                        string, optional, scoring metric, default dot
   -z NAN2ZERO, --nan2zero NAN2ZERO
-                        boolean, if treat nan as zero
+                        boolean, optional, if treat nan as zero, default True
   -n NUMPERMS, --numPerms NUMPERMS
-                        integer, number of permutations
+                        integer, optional, number of permutations, default
+                        10000
   -p MULTIPROCESS, --multiProcess MULTIPROCESS
-                        boolean, optional, ifuse multi-processing
+                        boolean, optional, if use multi-processing, default
+                        True
   -c NCORES, --ncores NCORES
-                        integer, optional, number of cores
+                        integer, optional, number of cores to usefor multi-
+                        processing
   -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
-                        string, way to treat valuesat the begining of an edge
-                        with sliding window size smaller than nLap, parent
-                        (need to have also
+                        string, optional, way to treat values at the begining
+                        of an edge with sliding window size smaller than nLap,
+                        parent (need to provide also
                         'path_info.pickle')/discard/smallerWindow, default
                         None
 ```
