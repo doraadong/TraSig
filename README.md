@@ -105,10 +105,10 @@ optional arguments:
                         boolean, optional, if use multi-processing, default
                         True
   -c NCORES, --ncores NCORES
-                        integer, optional, number of cores to usefor multi-
+                        integer, optional, number of cores to use for multi-
                         processing
   -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
-                        string, optional, way to treat values at the begining
+                        string, optional, way to treat values at the beginning
                         of an edge with sliding window size smaller than nLap,
                         parent (need to provide also
                         'path_info.pickle')/discard/smallerWindow, default
