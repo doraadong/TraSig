@@ -14,8 +14,8 @@ import numpy as np
 import bottleneck as bn
 import pandas as pd
 
-from trasig import trasig
-from utils import MPR, str2bool
+from trasig.trasig import trasig
+from trasig.utils import MPR, str2bool
 
 # multi-threading function
 def process_per_permutation(ns, save=False):
