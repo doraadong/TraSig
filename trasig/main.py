@@ -43,7 +43,7 @@ def process_per_permutation(ns, save=False):
     for _n in ns:
 
         if _n != 0:  # run permutation
-            cell_paths, cell_times = trasig.generate_permutation(_n)
+            cell_paths, cell_times = calculator.generate_permutation(_n)
         else:
             cell_paths, cell_times = cell_paths_o, cell_times_o
 
@@ -241,7 +241,7 @@ def process_per_permutation(ns, save=False):
         # changed to propress per pair of path?
         all_path_results = {}
         for cur_path in unique_paths:
-            i = trasig.process_per_path(cur_path, sender_exp, receiver_exp)
+            i = calculator.process_per_path(cur_path, sender_exp, receiver_exp)
             all_path_results.update(i)
 
         # save results
@@ -273,24 +273,31 @@ def process_per_permutation(ns, save=False):
 def main():
     # parse command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', required=True, default='../input/')
-    parser.add_argument('-o', '--output', required=True, default='../output/')
+    parser.add_argument('-i', '--input', required=True, default='../input/', help="string, folder to find inputs")
+    parser.add_argument('-o', '--output', required=True, default='../output/', help="string, folder to put outputs")
     parser.add_argument('-d', '--project', required=True, help="string, project name")
-    parser.add_argument('-g', '--preprocess', required=True, help="string", default="None")
-    parser.add_argument('-b', '--modelName', required=True, help="string, identifier for the model")
+    parser.add_argument('-g', '--preprocess', required=True, help="string, preprocessing steps applied to the "
+                                                                  "data / project, default None", default="None")
+    parser.add_argument('-b', '--modelName', required=True, help="string, name of the trajectory model")
     parser.add_argument('-t', '--listType', required=False,
-                        default='ligand_receptor', help="string")
-    parser.add_argument('-l', '--nLap', required=False, default=20, help="integer")
-    parser.add_argument('-m', '--metric', required=False, default='dot', help="string")
-    parser.add_argument('-z', '--nan2zero', required=False, type=str2bool, default=True, help="boolean, if treat nan as"
-                                                                                              "zero")
-    parser.add_argument('-n', '--numPerms', required=False, default=10000, help="integer, number of permutations")
-    parser.add_argument('-p', '--multiProcess', required=False, type=str2bool, default=True, help="boolean, optional, if"
-                                                                                        "use multi-processing")
-    parser.add_argument('-c', '--ncores', required=False, default=4, help="integer, optional, number of cores")
-    parser.add_argument('-s', '--startingTreatment', required=False, default="None", help="string, way to treat values"
-                        "at the begining of an edge with sliding window size smaller than nLap, "
-                        "parent (need to have also 'path_info.pickle')/discard/smallerWindow, default None")
+                        default='ligand_receptor', help="string, optional, "
+                                                        "interaction list type, default ligand_receptor")
+    parser.add_argument('-l', '--nLap', required=False, default=20, help="integer, optional, "
+                                                                         "sliding window size, default 20")
+    parser.add_argument('-m', '--metric', required=False, default='dot', help="string, optional, "
+                                                                              "scoring metric, default dot")
+    parser.add_argument('-z', '--nan2zero', required=False, type=str2bool,
+                        default=True, help="boolean, optional, if treat nan as zero, default True")
+    parser.add_argument('-n', '--numPerms', required=False,
+                        default=10000, help="integer, optional, number of permutations, default 10000")
+    parser.add_argument('-p', '--multiProcess', required=False, type=str2bool,
+                        default=True, help="boolean, optional, if use multi-processing, default True")
+    parser.add_argument('-c', '--ncores', required=False, default=4, help="integer, optional, number of cores to use"
+                                                                          "for multi-processing")
+    parser.add_argument('-s', '--startingTreatment', required=False,
+                        default="None", help="string, optional, way to treat values at the begining of an edge with "
+                        "sliding window size smaller than nLap, "
+                        "parent (need to provide also 'path_info.pickle')/discard/smallerWindow, default None")
 
 
     args = parser.parse_args()
@@ -368,7 +375,7 @@ def main():
     cell_times_o = np.round(cell_times_o, 2)
 
     # initialize trasig
-    trasig = trasig(metrics, time2path, path2time, cell_times_o, cell_paths_o, unique_paths)
+    calculator = trasig(metrics, time2path, path2time, cell_times_o, cell_paths_o, unique_paths)
 
     # load the original data
     _n = 0
