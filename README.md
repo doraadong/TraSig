@@ -49,6 +49,13 @@ Then install TraSig, together with all its dependencies by:
 pip install git+https://github.com/doraadong/TraSig.git
 ```
 
+If you want to upgrade the version of TraSig, then first uninstall it by:
+
+```shell
+pip uninstall trasig
+```
+And then run the pip install command again. 
+
 ### Not using virtural environment
 
 If you prefer not to use a virtual envrionment, then you may install TraSig and its dependencies by (may need to use **sudo**): 
