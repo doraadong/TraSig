@@ -76,7 +76,7 @@ pip show trasig
 Run TraSig by (arguments are taken for example): 
 
 ```shell
-main.py -i input -o output -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot -n 1000
+main.py -i input -o output -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot -n 1000 -s smallerWindow
 ```
 The usage of this command is listed as follows:  
 
