@@ -114,7 +114,7 @@ optional arguments:
                         True
   -c NCORES, --ncores NCORES
                         integer, optional, number of cores to use for multi-
-                        processing
+                        processing, default 4
   -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
                         string, optional, way to treat values at the beginning
                         of an edge with sliding window size smaller than nLap,
