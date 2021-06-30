@@ -15,6 +15,7 @@ TraSig (**Tra**jectory-based **Sig**nalling genes inference) identifies interact
 -- numpy >= 1.19.5  
 -- pandas >= 0.23.4  
 -- Bottleneck >= 1.3.2  
+-- statsmodels >= 0.12.1 (required for post-analysis only)
 
 ## Installation 
 
