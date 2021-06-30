@@ -6,7 +6,7 @@ TraSig (**Tra**jectory-based **Sig**nalling genes inference) identifies interact
 ## Table of Contents
 - [Get started](#Get&nbsp;started)
 - [Command-line tools](#Command-line)
-- [Prepare input](#Tutorials)
+- [Tutorials](#Tutorials)
 
 # Get started 
 ## Prerequisites 
@@ -124,6 +124,11 @@ optional arguments:
 ```
 
 # Tutorials
+
+## Demo 
+The example inputs and outputs can be found under the folder "example". You may follow the [tutorial](tutorials/Run_TraSig_on_example_data.ipynb) to run TraSig on the example data and analyze the outputs. 
+
+## Prepare inputs 
 To run TraSig, we need to have 3 input files. Here is a [tutorial](tutorials/Prepare_input_from_dynverse_ti_methods.ipynb), showing how to prepare these files from the inference results of any trajectory inference method implemented in [dynverse](https://dynverse.org/).
 
 # Credits
