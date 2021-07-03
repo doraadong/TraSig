@@ -130,7 +130,7 @@ optional arguments:
 The example inputs and outputs can be found under the folder "example". You may follow the [tutorial](tutorials/Run_TraSig_on_example_data.ipynb) to run TraSig on the example data and analyze the outputs. 
 
 ## Prepare inputs 
-To run TraSig, we need to have 4 input files. Here is a [tutorial](tutorials/Prepare_input_from_dynverse_ti_methods.ipynb), showing how to prepare these files from the inference results of any trajectory inference method implemented in [dynverse](https://dynverse.org/).
+To run TraSig, we need to have 4 input files. Here is a [tutorial](tutorials/Prepare_input_from_dynverse_ti_methods.ipynb), showing how to prepare these files from the inference results of any trajectory inference method included in [dynverse](https://dynverse.org/).
 
 # Credits
 The software is an implementation of the method TraSig, jointly developed by Dora Li, [Jun Ding](https://github.com/phoenixding) and Ziv Bar-Joseph from [System Biology Group @ Carnegie Mellon University](http://sb.cs.cmu.edu/). We also acknowledge Jeremy J. Velazquez, Joshua Hislop and Mo R. Ebrahimkhani from University of Pittsburgh for the fruitful discussions on method development. 
