@@ -127,7 +127,7 @@ optional arguments:
 # Tutorials
 
 ## Demo 
-The example inputs and outputs can be found under the folder "example". You may follow the [tutorial](tutorials/Run_TraSig_on_example_data.ipynb) to run TraSig on the example data and analyze the outputs. 
+The example inputs and outputs can be found under the folder [example](example). You may follow the [tutorial](tutorials/Run_TraSig_on_example_data.ipynb) to run TraSig on the example data and analyze the outputs. 
 
 ## Prepare inputs 
 To run TraSig, we need to have 4 input files. Here is a [tutorial](tutorials/Prepare_input_from_dynverse_ti_methods.ipynb), showing how to prepare these files from the inference results of any trajectory inference method included in [dynverse](https://dynverse.org/). You can find the example input expression data and output trajectory inference result under the folder [trajectory](trajectory). 
