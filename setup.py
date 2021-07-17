@@ -17,7 +17,8 @@ REQUIRES_PYTHON = '>=3.6'
 VERSION = '1.0.0'
 
 # What packages are required for this module to be executed?
-REQUIRED = ['numpy>=1.19.5', 'pandas>=0.23.4', 'Bottleneck>=1.3.2', 'statsmodels>=0.12.1']
+REQUIRED = ['numpy>=1.19.5', 'pandas>=0.23.4', 'Bottleneck>=1.3.2', 'statsmodels>=0.12.1',
+            'scipy>=1.5.4', "matplotlib>=3.3.4", "seaborn>=0.11.0"]
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
