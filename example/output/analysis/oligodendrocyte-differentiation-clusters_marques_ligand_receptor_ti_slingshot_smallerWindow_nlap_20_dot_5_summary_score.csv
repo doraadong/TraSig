@@ -1,0 +1,33 @@
+sender,sender-label,receiver,receiver-label,counts
+0,"MOL(0.72)
+ OPC(0.25)",0,"MOL(0.72)
+ OPC(0.25)",28
+0,"MOL(0.72)
+ OPC(0.25)",1,"NFOL(0.75)
+ COP(0.17)",30
+0,"MOL(0.72)
+ OPC(0.25)",2,MOL,6
+0,"MOL(0.72)
+ OPC(0.25)",3,MOL,15
+1,"NFOL(0.75)
+ COP(0.17)",0,"MOL(0.72)
+ OPC(0.25)",29
+1,"NFOL(0.75)
+ COP(0.17)",1,"NFOL(0.75)
+ COP(0.17)",25
+1,"NFOL(0.75)
+ COP(0.17)",2,MOL,11
+1,"NFOL(0.75)
+ COP(0.17)",3,MOL,20
+2,MOL,0,"MOL(0.72)
+ OPC(0.25)",16
+2,MOL,1,"NFOL(0.75)
+ COP(0.17)",17
+2,MOL,2,MOL,0
+2,MOL,3,MOL,11
+3,MOL,0,"MOL(0.72)
+ OPC(0.25)",30
+3,MOL,1,"NFOL(0.75)
+ COP(0.17)",25
+3,MOL,2,MOL,10
+3,MOL,3,MOL,18
