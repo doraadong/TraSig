@@ -1,4 +1,9 @@
-# ------ helper classes / funcitons --------
+"""
+
+Helper classes / functions.
+
+"""
+
 from multiprocessing import Pool
 import argparse
 
@@ -32,7 +37,7 @@ class MPR:
 
 def str2bool(v):
     """
-    Helper to pass arguements.
+    Helper to pass boolean arguements.
 
     Extracted from: https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
     Author: @Maxim

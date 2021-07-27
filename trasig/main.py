@@ -32,6 +32,14 @@ def process_per_permutation(ns, save=False):
     ----------
     ns: list or generator
         permutation indexes
+    save: boolean
+        if save scoring result for the current permutation
+
+    Returns
+    -------
+    _counts: dictionary
+        pair of paths / edges (string) as keys, counts as values; count representing number of permutations
+        as least as extreme as the observed value
 
     """
     saveCounts = True
@@ -44,9 +52,9 @@ def process_per_permutation(ns, save=False):
 
     for _n in ns:
 
-        if _n != 0:  # run permutation
+        if _n != 0:  # run for the permutation
             cell_paths, cell_times = trasig.generate_permutation(_n)
-        else:
+        else:  # run for the original data
             cell_paths, cell_times = cell_paths_o, cell_times_o
 
         # path to idx
@@ -150,7 +158,7 @@ def process_per_permutation(ns, save=False):
             else:
                 smaller_n_lap = 1
 
-                # calculate move mean for a smaller window size
+            # calculate move mean for a smaller window size
             _exp_sum = bn.move_sum(exp, window=smaller_n_lap, min_count=1, axis=0)
             _count_sum = bn.move_sum(count, window=smaller_n_lap, min_count=1, axis=0)
             exp_smaller = _exp_sum / _count_sum[:, :, None]
@@ -175,8 +183,8 @@ def process_per_permutation(ns, save=False):
         gc.collect()
 
         # get expressions over a window
-        # still hold the space for the 1st few elements where window size is not large enough
-        # min_count=1: still calculate for the 1st few elements even though the length is small than n_lap
+        # still hold the space for the first few elements where window size is not large enough
+        # min_count=1: still calculate for the first few elements even though the length is small than n_lap
         # also, np.nan is ignored as long as 1 element is not nan
         _exp_sum = bn.move_sum(exp, window=n_lap, min_count=1, axis=0)
         _count_sum = bn.move_sum(count, window=n_lap, min_count=1, axis=0)
@@ -295,12 +303,13 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--multiProcess', required=False, type=str2bool,
                         default=True, help="boolean, optional, if use multi-processing, default True")
     parser.add_argument('-c', '--ncores', required=False, default=4, help="integer, optional, number of cores to use "
-                                                                          "for multi-processing")
+                                                                          "for multi-processing, default 4")
     parser.add_argument('-s', '--startingTreatment', required=False,
-                        default="None", help="string, optional, way to treat values at the beginning of an edge with "
-                                             "sliding window size smaller than nLap, "
-                                             "parent (need to provide also 'path_info.pickle')/discard/smallerWindow, "
-                                             "default None")
+                        default="smallerWindow", help="string, optional, way to treat values at the beginning of an "
+                                                      "edge with sliding window size smaller than nLap, "
+                                                      "None/parent/discard/smallerWindow, default smallerWindow, "
+                                                      "need to provide an extra input 'path_info.pickle' "
+                                                      "for 'parent' option")
 
     args = parser.parse_args()
     print(args)
@@ -379,7 +388,11 @@ if __name__ == '__main__':
     # initialize trasig
     trasig = trasig(metrics, time2path, path2time, cell_times_o, cell_paths_o, unique_paths)
 
-    # load the original data
+    # create output folder if not exist yet
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    # load the result from the original data
     _n = 0
 
     filename = f"{suffix}_metrics_{_n}.pickle"
@@ -399,7 +412,7 @@ if __name__ == '__main__':
         for m in metrics:
             pair2counts[pair][m] = np.repeat(0, len(results[pair][m]))
 
-    # if just parellel among different paths, then slower than not parellel
+    # if just parellel among different paths, then slower than not parellel at all
     if multi_processing:
         # sequential due to too large memory consumption given the return variables
         _quotient = int(num_perms // (ncores - 1))

@@ -28,6 +28,9 @@ class trasig:
 
     def paired_cov(self, S, R, normalized=True):
         """
+        Calculate covariance estimate for each column in S and its paired column
+        (same index) in R.
+
         Parameters:
         -----------
             normalized: boolean, normalize by number of rows (samples); biased
@@ -57,14 +60,14 @@ class trasig:
         """
         Generate ith permutation by permutating the cluster labels and the cell time assignment while
         keeping the original distribution of time conditional on label and the marginal distribution
-        of labels (i.e. the fraction of each time in a label and the fraction of a label)
+        of labels (i.e. the fraction of each time in a label and the fraction of a label) unchanged.
 
         """
         np.random.seed(i)
 
         # generate a permutated cell assignment (path & time)
         permutated_paths = np.random.permutation(self.cell_paths_o)
-        permutated_times = self.cell_times_o  # initalized as same
+        permutated_times = self.cell_times_o  # initialized as the original
 
         if permute_time:
             for i, cur_path in enumerate(self.unique_paths):
@@ -77,7 +80,6 @@ class trasig:
 
     def process_per_path(self, cur_path, sender_exp, receiver_exp, round_values=True, round_decimals=10):
         """
-        TBD: time2path, path2time, metrics are global variables.
 
         Returns
         -------
@@ -88,6 +90,9 @@ class trasig:
                 if round values to some decimals (default 10); this is recommended given that output from bottleneck
                 move_sum sometimes gives negative values very closed to 0 (e.g. -4e-17); these values will make the dot
                 product also negative and thus make value >= 0 (if real dot product being 0) as false
+        Notes
+        -----
+            TBD: time2path, path2time, metrics are global variables.
 
         """
         S = sender_exp[cur_path]
