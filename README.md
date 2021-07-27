@@ -124,9 +124,9 @@ optional arguments:
   -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
                         string, optional, way to treat values at the beginning
                         of an edge with sliding window size smaller than nLap,
-                        parent (need to provide also
-                        'path_info.pickle')/discard/smallerWindow, default
-                        None
+                        None/parent/discard/smallerWindow, default
+                        smallerWindow, need to provide an extra input
+                        'path_info.pickle' for 'parent' option
 ```
 
 ## Prepare inputs for TraSig (from dynverse outputs)
@@ -145,7 +145,7 @@ usage: prepare_inputs.py [-h] -i INPUT -o OUTPUT -d PROJECT -t TRAJECTORYFILE
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
-                        string, folder to find inputs to trajectory inference
+                        string, folder to find inputs for trajectory inference
   -o OUTPUT, --output OUTPUT
                         string, folder to save inputs for TraSig
   -d PROJECT, --project PROJECT
@@ -209,9 +209,9 @@ optional arguments:
   -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
                         string, optional, way to treat values at the beginning
                         of an edge with sliding window size smaller than nLap,
-                        parent (need to provide also
-                        'path_info.pickle')/discard/smallerWindow, default
-                        None
+                        None/parent/discard/smallerWindow, default
+                        smallerWindow, need to provide an extra input
+                        'path_info.pickle' for 'parent' option
 
 ```
 
