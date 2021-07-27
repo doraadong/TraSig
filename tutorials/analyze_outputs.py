@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+
 import pickle
 import os
 import argparse
 
 import numpy as np
-import bottleneck as bn
 import pandas as pd
+
 # load packages required for analysis
 import statsmodels.api as sm
 import statsmodels as sm
@@ -40,10 +42,11 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--numPerms', required=False,
                         default=10000, help="integer, optional, number of permutations, default 10000")
     parser.add_argument('-s', '--startingTreatment', required=False,
-                        default="None", help="string, optional, way to treat values at the beginning of an edge with "
-                                             "sliding window size smaller than nLap, "
-                                             "parent (need to provide also 'path_info.pickle')/discard/smallerWindow, "
-                                             "default None")
+                        default="smallerWindow", help="string, optional, way to treat values at the beginning of an "
+                                                      "edge with sliding window size smaller than nLap, "
+                                                      "None/parent/discard/smallerWindow, default smallerWindow, "
+                                                      "need to provide an extra input 'path_info.pickle' "
+                                                      "for 'parent' option")
 
     args = parser.parse_args()
     print(args)
@@ -182,7 +185,7 @@ if __name__ == '__main__':
     df['time-receiver'] = [path2time[i] for i in df['receiver']]
 
     ## label clusters using the true labels of the majority of cells (for plotting)
-    # build path2 label
+    # build path2label
 
     unique_days = np.unique(hid_var['cell_labels'])
     cell_paths = np.unique(hid_var["cell_path"])
@@ -200,7 +203,7 @@ if __name__ == '__main__':
         except AttributeError:
             pass
 
-            # get the sampling time for the majority cells
+        # get the sampling time for the majority cells
         mode, count = stats.mode(cur_labels)
 
         major_percent = round(float(count[0]) / len(cur_labels), 2)
@@ -208,6 +211,7 @@ if __name__ == '__main__':
 
         cur_label = mode[0]
 
+        # add more labels if cells of the major cell type make less than 90% of the whole population
         if major_percent < 0.9:
             cur_label += '(' + str(major_percent) + ')'
 
@@ -217,7 +221,7 @@ if __name__ == '__main__':
 
             count = 0
             while major_percent < 0.9:
-                # add more labels until major_percent >= 0.5
+                # add more labels until major_percent >= 0.9
                 add_counts = sorted_counts[::-1][1 + count]
                 _add_percent = round(add_counts / len(cur_labels), 2)
 
@@ -246,14 +250,13 @@ if __name__ == '__main__':
     df['dot_p_adjusted'] = _p
 
     ### Infer interactions among cell clusters (edges)
-
     # reset output path to save analysis results
     output_path = f"{output_path}/analysis"
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    print(f"Analysis outputs to be saved to {output_path}")
+    print(f"Analysis outputs to be saved at {output_path}")
 
     df_pool = pd.DataFrame(list(set(df['pair'])))
     df_pool.columns = ['pair']
@@ -284,12 +287,12 @@ if __name__ == '__main__':
 
     # order clusters (edges / paths) by sampling time
     path_order_time = []
-    for k,v in time2path.items():
+    for k, v in time2path.items():
         path_order_time = path_order_time + v
 
-    df_pool['sender'] =  pd.Categorical(df_pool['sender'], path_order_time)
-    df_pool['receiver'] =  pd.Categorical(df_pool['receiver'], path_order_time)
-    df_pool.sort_values(['sender','receiver'],inplace=True)
+    df_pool['sender'] = pd.Categorical(df_pool['sender'], path_order_time)
+    df_pool['receiver'] = pd.Categorical(df_pool['receiver'], path_order_time)
+    df_pool.sort_values(['sender', 'receiver'], inplace=True)
 
     _vmin = min(df_pool['counts'])
     _vmax = max(df_pool['counts'])
@@ -309,7 +312,7 @@ if __name__ == '__main__':
     sns.set_context("paper", font_scale=2)
 
     ax = sns.heatmap(df_plot.values, xticklabels=True, yticklabels=True,
-                     vmin = _vmin, vmax = _vmax, center = _center_value, cmap = "RdBu_r")
+                     vmin=_vmin, vmax=_vmax, center=_center_value, cmap="RdBu_r")
     plt.xticks(rotation=90)
     plt.ylabel("Sender")
     plt.xlabel('Receiver')
@@ -324,15 +327,15 @@ if __name__ == '__main__':
         plt.title(f"{method} using \n output from {_traj}")
 
     filename = f"{child_suffix}_summary_scores.png"
-    plt.savefig(os.path.join(output_path, filename), bbox_inches = "tight", dpi=300, format = "png")
+    plt.savefig(os.path.join(output_path, filename), bbox_inches="tight", dpi=300, format="png")
     filename = f"{child_suffix}_summary_scores.eps"
-    plt.savefig(os.path.join(output_path, filename), bbox_inches = "tight", dpi=300, format = "eps")
+    plt.savefig(os.path.join(output_path, filename), bbox_inches="tight", dpi=300, format="eps")
 
     # save summary score
     df_pool['sender-label'] = df_pool['sender'].replace(path2label)
     df_pool['receiver-label'] = df_pool['receiver'].replace(path2label)
 
-    cols_order = ['sender','sender-label','receiver','receiver-label', 'counts']
+    cols_order = ['sender', 'sender-label', 'receiver', 'receiver-label', 'counts']
     df_out = df_pool[cols_order].copy()
 
     filename = f"{child_suffix}_summary_score.csv"
@@ -342,22 +345,21 @@ if __name__ == '__main__':
     df_sig['sender-label'] = df_sig['sender'].replace(path2label)
     df_sig['receiver-label'] = df_sig['receiver'].replace(path2label)
 
+    # sort ligand-receptors in each cluster pair by their scores
     _dfs = []
-
     pairs_ts = np.unique(df_sig['pair'])
     for pair in pairs_ts:
         condition = df_sig['pair'] == pair
         _dfs.append(df_sig[condition].sort_values('dot', ascending=False))
 
     df_sorted = pd.concat(_dfs)
-    cols_order = ['pair', 'time-sender', 'sender', 'sender-label', 'time-receiver', 'receiver', 'receiver-label', 'ligand',
-                  'target', \
-                  'dot', 'dot_p', 'dot_p_adjusted']
+    cols_order = ['pair', 'time-sender', 'sender', 'sender-label', 'time-receiver', 'receiver', 'receiver-label',
+                  'ligand', 'target', 'dot', 'dot_p', 'dot_p_adjusted']
     df_sorted = df_sorted[cols_order]
 
     df_sorted.columns = ['interaction pair', 'sender sampling time', 'sender', 'sender-label', 'receiver sampling time',
-                         'receiver', 'receiver-label', 'ligand', 'target',
-                         'score', 'score p-value', 'score p-value adjusted']
+                         'receiver', 'receiver-label', 'ligand', 'target', 'score', 'score p-value',
+                         'score p-value adjusted']
 
     filename = f"{child_suffix}_significant_pairs.csv"
     df_sorted.to_csv(os.path.join(output_path, filename), index=False)

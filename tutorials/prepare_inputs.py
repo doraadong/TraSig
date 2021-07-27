@@ -1,29 +1,25 @@
-import os, sys
+#!/usr/bin/env python
+
+import os
 import argparse
-import time
-from os.path import exists
-import collections
-from typing import Iterable
 import pickle
-from collections import Counter
 import requests
 
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 import h5py
 import rpy2.robjects as robjects
 from scipy import stats
 
 """
-Optional parts skipped. Refer to the tutorial first and then run the script.
+Optional parts skipped. See the tutorial for more details.
 
 """
 if __name__ == '__main__':
     # parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', required=True, default='../input/',
-                        help="string, folder to find inputs to trajectory inference")
+                        help="string, folder to find inputs for trajectory inference")
     parser.add_argument('-o', '--output', required=True, default='../output/',
                         help="string, folder to save inputs for TraSig")
     parser.add_argument('-d', '--project', required=True, help="string, project name")
@@ -54,12 +50,13 @@ if __name__ == '__main__':
     else:
         _preprocess = ""
 
-    model_name = f"_{model_name}"
-
     if others == "None":
         condition = ""
 
-    ### Load expression
+    # naming output files
+    suffix = f"{_preprocess}_{model_name}{condition}"
+
+    ### Load expression and true labels
     filepath = f"{input_path}/{project}.rds"
 
     if os.path.exists(filepath):
@@ -86,11 +83,11 @@ if __name__ == '__main__':
     expression = df[data_keys.index('expression')]
     genes = df[data_keys.index('feature_info')]['feature_id'].values
 
-    N = len(cell_ids) # number of cells
+    N = len(cell_ids)  # number of cells
     G = len(genes)  # number of genes
 
 
-    ##  Load true trajectory (optional, for evaluating trajectory inference results only)
+    ##  Load true trajectory and labels
 
     # true trajectory
     milestones_true = df[data_keys.index('milestone_ids')]
@@ -139,8 +136,6 @@ if __name__ == '__main__':
     estimated_clusters['milestone_id'] = [_c.decode("utf-8") for _c in estimated_clusters['milestone_id']]
 
     ### Prepare and save input for TraSig
-    # naming output files
-    suffix = preprocess + model_name + condition
 
     ## Save estimated cluster and progression time
     estimated_progressions['from'] = [i.decode('utf-8') for i in estimated_progressions['from']]
@@ -148,12 +143,13 @@ if __name__ == '__main__':
     estimated_progressions['edge'] = estimated_progressions['from'] + '_' + estimated_progressions['to']
 
     # assign unique label (integer) to each edge
-
     edges = np.unique(estimated_progressions['edge'])
 
     edge2idx = {}
     for i, v in enumerate(edges):
         edge2idx[v] = i
+
+    print(f"Edges and their new labels: {edge2idx}")
 
     estimated_progressions['idx_edge'] = estimated_progressions['edge'].replace(edge2idx)
     hid_var = {'cell_path': estimated_progressions['idx_edge'].values,
@@ -161,7 +157,7 @@ if __name__ == '__main__':
               'cell_labels':assignment_true['milestone_id'].values}
 
     # save
-    filename = project + _preprocess + model_name + "_it2_hid_var.pickle"
+    filename = f"{project}{_preprocess}_{model_name}_it2_hid_var.pickle"
     with open(os.path.join(output_path, filename), 'wb') as handle:
         pickle.dump(hid_var, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -200,7 +196,6 @@ if __name__ == '__main__':
     filename = f"{list_type}_{project}{_preprocess}.pickle"
     with open(os.path.join(output_path, filename), 'wb') as handle:
         pickle.dump(filtered_interactions, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
 
     ## Save correspondence from sampling time to paths
     cell_ori_time = np.repeat(0, N)  # put all cells at time 0 if sampling time unknow
