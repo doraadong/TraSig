@@ -77,6 +77,8 @@ pip show trasig
 
 # Command-line 
 
+## Run TraSig
+
 Run TraSig by (arguments are taken for example): 
 
 ```shell
@@ -125,6 +127,92 @@ optional arguments:
                         parent (need to provide also
                         'path_info.pickle')/discard/smallerWindow, default
                         None
+```
+
+## Prepare inputs for TraSig (from dynverse outputs)
+
+Prepare inputs by (arguments are taken for example): 
+
+```shell
+python prepare_inputs.py -i ../trajectory/input -o ../example/input -d oligodendrocyte-differentiation-clusters_marques -t ../trajectory/output/output.h5 -g None -b ti_slingshot -e None
+```
+The usage of this command is listed as follows:  
+
+```shell
+usage: prepare_inputs.py [-h] -i INPUT -o OUTPUT -d PROJECT -t TRAJECTORYFILE
+                         -g PREPROCESS -b MODELNAME [-e OTHERIDENTIFIER]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        string, folder to find inputs to trajectory inference
+  -o OUTPUT, --output OUTPUT
+                        string, folder to save inputs for TraSig
+  -d PROJECT, --project PROJECT
+                        string, project name
+  -t TRAJECTORYFILE, --trajectoryFile TRAJECTORYFILE
+                        string, trajectory output file from dynverse, default
+                        ../trajectory/output/output.h5
+  -g PREPROCESS, --preprocess PREPROCESS
+                        string, preprocessing steps applied to the data /
+                        project, default None
+  -b MODELNAME, --modelName MODELNAME
+                        string, name of the trajectory model
+  -e OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
+                        string, optional, other identifier for the output,
+                        default None
+
+```
+
+## Analyze outputs from TraSig
+
+Analyze outputs by (arguments are taken for example): 
+
+```shell
+python analyze_outputs.py -i ../example/input -o ../example/output -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot -e None -n 100000 -s smallerWindow
+```
+The usage of this command is listed as follows:  
+
+```shell
+usage: analyze_outputs.py [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b
+                          MODELNAME [-t LISTTYPE] [-e OTHERIDENTIFIER]
+                          [-l NLAP] [-m METRIC] [-z NAN2ZERO] [-n NUMPERMS]
+                          [-s STARTINGTREATMENT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        string, folder to find TraSig's inputs
+  -o OUTPUT, --output OUTPUT
+                        string, folder to find TraSig's outputs
+  -d PROJECT, --project PROJECT
+                        string, project name
+  -g PREPROCESS, --preprocess PREPROCESS
+                        string, preprocessing steps applied to the data /
+                        project, default None
+  -b MODELNAME, --modelName MODELNAME
+                        string, name of the trajectory model
+  -t LISTTYPE, --listType LISTTYPE
+                        string, optional, interaction list type, default
+                        ligand_receptor
+  -e OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
+                        string, optional, other identifier for the output,
+                        default None
+  -l NLAP, --nLap NLAP  integer, optional, sliding window size, default 20
+  -m METRIC, --metric METRIC
+                        string, optional, scoring metric, default dot
+  -z NAN2ZERO, --nan2zero NAN2ZERO
+                        boolean, optional, if treat nan as zero, default True
+  -n NUMPERMS, --numPerms NUMPERMS
+                        integer, optional, number of permutations, default
+                        10000
+  -s STARTINGTREATMENT, --startingTreatment STARTINGTREATMENT
+                        string, optional, way to treat values at the beginning
+                        of an edge with sliding window size smaller than nLap,
+                        parent (need to provide also
+                        'path_info.pickle')/discard/smallerWindow, default
+                        None
+
 ```
 
 # Tutorials
