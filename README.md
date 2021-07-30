@@ -7,6 +7,8 @@ TraSig (**Tra**jectory-based **Sig**nalling genes inference) identifies interact
 - [Get started](#Get&nbsp;started)
 - [Command-line tools](#Command-line)
 - [Tutorials](#Tutorials)
+- [Learn more](#Learn&nbsp;more)
+- [Credits](#Credits)
 
 # Get started 
 ## Prerequisites 
@@ -225,6 +227,8 @@ The example inputs and outputs can be found under the folder [example](example).
 ## Prepare inputs 
 To run TraSig, we need to have 4 input files. Here is a [tutorial](tutorials/Prepare_input_from_dynverse_ti_methods.ipynb), showing how to prepare these files from the inference results of any trajectory inference method included in [dynverse](https://dynverse.org/). You can find the example expression data (input) and trajectory inference result (output) under the folder [trajectory](trajectory). You may also prepare the inputs for TraSig by running the aforementioned script [prepare_inputs](tutorails/prepare_inputs.py) using command-line. See the tutorial for more details. 
 
+# Lear more
+Check our preprint at [biorxiv](https://www.biorxiv.org/content/10.1101/2021.07.28.454054v1). 
 
 # Credits
 The software is an implementation of the method TraSig, jointly developed by [Dora Li](https://github.com/doraadong), [Jun Ding](https://github.com/phoenixding) and Ziv Bar-Joseph from [System Biology Group @ Carnegie Mellon University](http://sb.cs.cmu.edu/). We also acknowledge Jeremy J. Velazquez, Joshua Hislop and Mo R. Ebrahimkhani from University of Pittsburgh for the fruitful discussions on method development. 
