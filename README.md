@@ -7,7 +7,7 @@ TraSig (**Tra**jectory-based **Sig**nalling genes inference) identifies interact
 - [Get started](#Get&nbsp;started)
 - [Command-line tools](#Command-line)
 - [Tutorials](#Tutorials)
-- [Learn more](#Learn&nbsp;more)
+- [Learn more](#<Learn more>)
 - [Credits](#Credits)
 
 # Get started 
