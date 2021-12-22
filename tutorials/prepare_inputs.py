@@ -14,6 +14,9 @@ from scipy import stats
 """
 Optional parts skipped. See the tutorial for more details.
 
+Updates log:
+12-21-21: change the output name of the filtered expression, to include ligand-receptor list name
+
 """
 if __name__ == '__main__':
     # parse command-line arguments
@@ -183,7 +186,7 @@ if __name__ == '__main__':
     df_sub = df[kepted_genes]
 
     # save filtered expression
-    filename = f"{project}{_preprocess}_lr.txt"
+    filename = f"{project}{_preprocess}_{list_type}.txt"
     data_file = os.path.join(output_path, filename)
     df_sub.to_csv(data_file)
 
