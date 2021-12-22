@@ -2,7 +2,47 @@
 
 Helper classes / functions.
 
+9-17-21: Move getPairedPaths to utils.
+
 """
+
+
+def getPairedPaths(cur_path, time2path, path2time, same_time=True):
+    """
+    Get edges from the same time or (closed time if same_time = False).
+
+    Parameters
+    ----------
+    cur_path: integer
+        name of the current edge / path
+    time2path: dictionary
+        time as key and list of edges / paths as value
+    path2time: dictionary
+        edge / path as key and time as value
+    same_time: boolean
+        if only select edge / path belonging to the same time
+
+
+    Returns
+    -------
+    paired_paths: list
+        edge / paths closed in time to the current edge / path
+
+    """
+
+    time = path2time[cur_path]
+
+    paired_paths = []
+    for k, v in time2path.items():
+        if same_time:
+            if k == time:
+                paired_paths += time2path[k]
+        else:
+            if k <= time + 1 and k >= time - 1:  # include 1 sampling time before and after
+                paired_paths += time2path[k]
+
+    return paired_paths
+
 
 from multiprocessing import Pool
 import argparse
