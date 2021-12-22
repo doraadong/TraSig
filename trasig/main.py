@@ -20,7 +20,6 @@ import numpy as np
 import bottleneck as bn
 import pandas as pd
 
-from context import trasig
 from trasig.trasig import trasig
 from trasig.alignment import DTW
 from trasig.utils import MPR, str2bool, getPairedPaths
