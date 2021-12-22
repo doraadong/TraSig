@@ -94,6 +94,8 @@ The usage of this command is listed as follows:
 usage: main.py [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b MODELNAME
                [-t LISTTYPE] [-l NLAP] [-m METRIC] [-z NAN2ZERO] [-n NUMPERMS]
                [-p MULTIPROCESS] [-c NCORES] [-s STARTINGTREATMENT]
+               [-a ALIGNTYPE] [-y GENEPAIRTYPE] [-f SMOOTH] [-v OVERLAP]
+               [-r RATE] [-e ERRORTYPE] [-k ARATE] [-j BRATE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -131,6 +133,29 @@ optional arguments:
                         None/parent/discard/smallerWindow, default
                         smallerWindow, need to provide an extra input
                         'path_info.pickle' for 'parent' option
+  -a ALIGNTYPE, --alignType ALIGNTYPE
+                        string, optional, how to align edges, options:
+                        unaligned/aligned-fixed/aligned-specific, default
+                        unaligned
+  -y GENEPAIRTYPE, --genePairType GENEPAIRTYPE
+                        string, optional, genes to align, default interaction
+  -f SMOOTH, --smooth SMOOTH
+                        float, optional, smoothing parameter for splines,
+                        default 1
+  -v OVERLAP, --overlap OVERLAP
+                        float, optional, overlap threshold for alignment,
+                        default 0.5
+  -r RATE, --rate RATE  integer, optional, sampling rate for aligned time
+                        points, default 1
+  -e ERRORTYPE, --errorType ERRORTYPE
+                        string, optional, type of distance metric for
+                        alignment (MSE, cosine or corr), default cosine
+  -k ARATE, --aRate ARATE
+                        float, optional, rate to sample parameter a for
+                        alignment, default 0.01
+  -j BRATE, --bRate BRATE
+                        float, optional, rate to sample parameter b for
+                        alignment, default 0.5
 ```
 
 ## Prepare inputs for TraSig (from dynverse outputs)
