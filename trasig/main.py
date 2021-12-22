@@ -2,7 +2,11 @@
 
 """
 
-4-19-21 Updates: add startingTreatment option
+Updaets log:
+10-21-21: for the expression (filtered by ligand-receptor pairs), instead of having "_lr.txt"; use
+                 "_{list_type}.txt"
+9-17-21: add alignment using Dynamic Time Warping (DTW) option
+4-19-21: add startingTreatment option
 
 """
 
@@ -16,8 +20,10 @@ import numpy as np
 import bottleneck as bn
 import pandas as pd
 
+from context import trasig
 from trasig.trasig import trasig
-from trasig.utils import MPR, str2bool
+from trasig.alignment import DTW
+from trasig.utils import MPR, str2bool, getPairedPaths
 
 # multi-threading function
 def process_per_permutation(ns, save=False):
@@ -221,38 +227,138 @@ def process_per_permutation(ns, save=False):
         # collect unused variables
         gc.collect()
 
-        # build pair-up sender and receiver expressions
-        _sender = []
-        _receiver = []
+        if align_type == "unaligned":
 
-        for i in interaction_list:
-            ligand = i[0]
-            receptor = i[1]
+            # build pair-up sender and receiver expressions
+            _sender = []
+            _receiver = []
 
-            _sender.append(exp[:, :, gene_names.index(ligand)][:, :, None])
-            _receiver.append(exp[:, :, gene_names.index(receptor)][:, :, None])
+            for i in interaction_list:
+                ligand = i[0]
+                receptor = i[1]
 
-        _sender = np.concatenate(_sender, axis=2)
-        _receiver = np.concatenate(_receiver, axis=2)
+                _sender.append(exp[:, :, gene_names.index(ligand)][:, :, None])
+                _receiver.append(exp[:, :, gene_names.index(receptor)][:, :, None])
 
-        del exp
-        # collect unused variables
-        gc.collect()
+            _sender = np.concatenate(_sender, axis=2)
+            _receiver = np.concatenate(_receiver, axis=2)
 
-        # split into paths (TBD: faster if not split; check enisum)
-        sender_exp = {}
-        receiver_exp = {}
+            del exp
+            # collect unused variables
+            gc.collect()
 
-        # for each path, prepare a sender and a receiver expressions
-        for i, cur_path in enumerate(unique_paths):
-            sender_exp[cur_path] = _sender[:, i, :]
-            receiver_exp[cur_path] = _receiver[:, i, :]
+            # split into paths (TBD: faster if not split; check enisum)
+            sender_exp = {}
+            receiver_exp = {}
 
-        # changed to propress per pair of path?
-        all_path_results = {}
-        for cur_path in unique_paths:
-            i = trasig.process_per_path(cur_path, sender_exp, receiver_exp)
-            all_path_results.update(i)
+            # for each path, prepare a sender and a receiver expressions
+            for i, cur_path in enumerate(unique_paths):
+                sender_exp[cur_path] = _sender[:, i, :]
+                receiver_exp[cur_path] = _receiver[:, i, :]
+
+            # changed to process all pairs of paths?
+            all_path_results = {}
+            for cur_path in unique_paths:
+                i = trasig.process_per_path(cur_path, sender_exp, receiver_exp)
+                all_path_results.update(i)
+
+            del sender_exp
+            del receiver_exp
+            del _sender
+            del _receiver
+
+            # collect unused variables
+            gc.collect()
+
+        else:
+            observed_exist = False
+            errors_path = os.path.join(output_path, f"{suffix}_0_errors.pickle")
+            if os.path.isfile(errors_path):
+               observed_exist = True
+
+            if observed_exist and (_n == 0 or align_type == "aligned-fixed"):
+
+                # build splines
+                T = exp.shape[0]
+
+                splines = dtw.get_splines(exp, T, gene_names, unique_paths)
+
+                del exp
+                # collect unused variables
+                gc.collect()
+
+                # read in the best alignment for the observed sample
+                errors_path = os.path.join(output_path, f"{suffix}_0_errors.pickle")
+                params_path = os.path.join(output_path, f"{suffix}_0_params.pickle")
+
+                with open(errors_path, 'rb') as handle:
+                    errors = pickle.load(handle)
+
+                with open(params_path, 'rb') as handle:
+                    align_params = pickle.load(handle)
+
+            else:
+                # conduct alignment
+                if _n == 0:
+                    save_errors = True
+                    save_parameters = True
+
+                    # save
+                    errors_path = os.path.join(output_path, f"{suffix}_{_n}_errors.pickle")
+                    params_path = os.path.join(output_path, f"{suffix}_{_n}_params.pickle")
+                else:
+                    save_errors = False
+                    save_parameters = False
+
+                    errors_path = None
+                    params_path = None
+
+
+                T = exp.shape[0]
+                G = len(gene_names)
+
+                splines = dtw.get_splines(exp, T, gene_names, unique_paths)
+
+                del exp
+                # collect unused variables
+                gc.collect()
+
+                T_REF_MIN = 0
+                T_REF_MAX = T
+
+                timepoints_aligned_ref, timepoints_aligned_sample, mask, align_params = \
+                    dtw.get_params(G, T_REF_MIN, T_REF_MAX, save_parameters=save_parameters, params_path=params_path)
+
+                errors = dtw.get_alignment_error(unique_paths, time2path, path2time, gene_pairs,
+                                                 timepoints_aligned_ref, timepoints_aligned_sample,
+                                                 mask, splines, save_errors=save_errors, errors_path=errors_path)
+
+                del timepoints_aligned_ref
+                del timepoints_aligned_sample
+                del mask
+
+                # collect unused variables
+                gc.collect()
+
+
+            # calculate score
+            S, R = dtw.evaluate_splines_paths(time2path, path2time, errors, align_params, unique_paths,
+                                              interaction_list, splines)
+
+            # cap at 0 (remove negative values' impact on scores)
+            S[S < 0] = 0
+            R[R < 0] = 0
+
+            all_path_results = trasig.process_all_paths(S, R)
+
+            del splines
+            del errors
+            del align_params
+            del S
+            del R
+
+            # collect unused variables
+            gc.collect()
 
         # save results
         if save:
@@ -269,10 +375,6 @@ def process_per_permutation(ns, save=False):
                     _counts[pair][m] += _add
 
         del all_path_results
-        del sender_exp
-        del receiver_exp
-        del _sender
-        del _receiver
 
         # collect unused variables
         gc.collect()
@@ -310,6 +412,26 @@ if __name__ == '__main__':
                                                       "None/parent/discard/smallerWindow, default smallerWindow, "
                                                       "need to provide an extra input 'path_info.pickle' "
                                                       "for 'parent' option")
+    # the following specifiy alignment related arguements
+    parser.add_argument('-a', '--alignType', required=False,
+                        default='unaligned', help="string, optional, how to align edges, "
+                                                  "options: unaligned/aligned-fixed/aligned-specific, "
+                                                  "default unaligned")
+    parser.add_argument('-y', '--genePairType', required=False,
+                        default='interaction', help="string, optional, genes to align, default interaction")
+    parser.add_argument('-f', '--smooth', required=False,
+                        default=1, help="float, optional, smoothing parameter for splines, default 1")
+    parser.add_argument('-v', '--overlap', required=False,
+                        default=0.5, help="float, optional, overlap threshold for alignment, default 0.5")
+    parser.add_argument('-r', '--rate', required=False,
+                        default=1, help="integer, optional, sampling rate for aligned time points, default 1")
+    parser.add_argument('-e', '--errorType', required=False, default="cosine",
+                        help="string, optional, type of distance metric for alignment (MSE, cosine or corr), "
+                             "default cosine")
+    parser.add_argument('-k', '--aRate', required=False,
+                        default=0.01, help="float, optional, rate to sample parameter a for alignment, default 0.01")
+    parser.add_argument('-j', '--bRate', required=False,
+                        default=0.5, help="float, optional, rate to sample parameter b for alignment, default 0.5")
 
     args = parser.parse_args()
     print(args)
@@ -347,13 +469,29 @@ if __name__ == '__main__':
     multi_processing = args.multiProcess
     ncores = int(args.ncores)
 
+    # set parameters for alignment
+    align_type = args.alignType
+    if align_type != "unaligned":
+        SMOOTH_PARAMETER = float(args.smooth)
+        OVERLAP_THRESHOLD = float(args.overlap)
+        SAMPLING_RATE = int(args.rate)
+        gene_pair_type = args.genePairType
+        error_type = args.errorType
+        a_rate = float(args.aRate)
+        b_rate = float(args.bRate)
+
+        suffix = f"{suffix}_{gene_pair_type}_{SMOOTH_PARAMETER}_{error_type}_{a_rate}_{b_rate}"
+
+    else:
+        pass
+
     # get interaction file (list of (ligand, receptor/target))
     filename = f"{list_type}_{project}{_preprocess}.pickle"
     with open(os.path.join(input_path, filename), 'rb') as handle:
         interaction_list = pickle.load(handle)
 
     # load expression data
-    filename = f"{project}{_preprocess}_lr.txt"
+    filename = f"{project}{_preprocess}_{list_type}.txt"
     print("Load: ", filename)
 
     data_file = os.path.join(input_path, filename)
@@ -392,6 +530,19 @@ if __name__ == '__main__':
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
+    # initialize alignment (if using alignment)
+    if align_type != "unaligned":
+        dtw = DTW(SMOOTH_PARAMETER, OVERLAP_THRESHOLD, SAMPLING_RATE, gene_pair_type, error_type, a_rate, b_rate)
+
+        # get gene pairs for alignment
+        if gene_pair_type == "interaction":
+            gene_pairs = interaction_list
+        else:
+            raise NotImplementedError(f"Now only support interaction.")
+
+    else:
+        pass
+
     # load the result from the original data
     _n = 0
 
@@ -412,7 +563,7 @@ if __name__ == '__main__':
         for m in metrics:
             pair2counts[pair][m] = np.repeat(0, len(results[pair][m]))
 
-    # if just parellel among different paths, then slower than not parellel at all
+    # if just parallel among different paths, then slower than not parallel at all
     if multi_processing:
         # sequential due to too large memory consumption given the return variables
         _quotient = int(num_perms // (ncores - 1))
@@ -451,6 +602,13 @@ if __name__ == '__main__':
             process_per_permutation(_n)
 
     # save
+    suffix = f"{suffix}_{int(np.log10(num_perms))}"
+
+    if align_type != "unaligned":
+        suffix = f"{suffix}_{align_type}"
+    else:
+        pass
+
     filename = f"{suffix}_permutation_results.pickle"
     data_file = os.path.join(output_path, filename)
 
