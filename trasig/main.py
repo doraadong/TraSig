@@ -428,9 +428,9 @@ if __name__ == '__main__':
                         help="string, optional, type of distance metric for alignment (MSE, cosine or corr), "
                              "default cosine")
     parser.add_argument('-k', '--aRate', required=False,
-                        default=0.01, help="float, optional, rate to sample parameter a for alignment, default 0.01")
+                        default=0.05, help="float, optional, rate to sample parameter a for alignment, default 0.05")
     parser.add_argument('-j', '--bRate', required=False,
-                        default=0.5, help="float, optional, rate to sample parameter b for alignment, default 0.5")
+                        default=2.5, help="float, optional, rate to sample parameter b for alignment, default 2.5")
 
     args = parser.parse_args()
     print(args)
