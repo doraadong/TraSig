@@ -238,7 +238,9 @@ Check our preprint at [biorxiv](https://www.biorxiv.org/content/10.1101/2021.07.
 The software is an implementation of the method TraSig, jointly developed by [Dora Li](https://github.com/doraadong), [Jun Ding](https://github.com/phoenixding) and Ziv Bar-Joseph from [System Biology Group @ Carnegie Mellon University](http://sb.cs.cmu.edu/). We also acknowledge Jeremy J. Velazquez, Joshua Hislop and Mo R. Ebrahimkhani from University of Pittsburgh for the fruitful discussions on method development. 
 
 # Updates log
-* 12-21-2021: Add support for conducting temporal alignment and calculating scores using optimally aligned expression profiles
+* 12-21-2021:   
+-- Add support for conducting temporal alignment and calculating scores using optimally aligned expression profiles  
+-- Add tutorial illustrating how to prepare inputs using user-defined trajectory, not necessarily from dynverse
 
 # Contacts
 * dongshul at andrew.cmu.edu 
