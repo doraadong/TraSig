@@ -152,10 +152,10 @@ optional arguments:
                         alignment (MSE, cosine or corr), default cosine
   -k ARATE, --aRate ARATE
                         float, optional, rate to sample parameter a for
-                        alignment, default 0.01
+                        alignment, default 0.05
   -j BRATE, --bRate BRATE
                         float, optional, rate to sample parameter b for
-                        alignment, default 0.5
+                        alignment, default 2.5
 ```
 
 ## Prepare inputs for TraSig (from dynverse outputs)
