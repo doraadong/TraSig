@@ -27,10 +27,10 @@ if __name__ == '__main__':
                         default='../trajectory/output/output.h5', help="string, "
                                     "trajectory output file from dynverse, default ../trajectory/output/output.h5")
     parser.add_argument('-g', '--preprocess', required=True, help="string, preprocessing steps applied to the "
-                                                                  "data / project, default None", default="None")
+                                                                  "data / project, default 'None'", default="None")
     parser.add_argument('-b', '--modelName', required=True, help="string, name of the trajectory model")
     parser.add_argument('-e', '--otherIdentifier', required=False,
-                        default="None", help="string, optional, other identifier for the output, default None")
+                        default="None", help="string, optional, other identifier for the output, default 'None'")
     parser.add_argument('-c', '--listType', required=False,
                         default='ligand_receptor', help="string, optional, interaction list type, "
                                                         "default ligand_receptor")
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('-yp', '--pathAlign', required=False,
                         default="None", help="string, optional, path to the alignment genes list, "
                                              "set as 'None' if not doing alignment or using 'interaction' for alignment, "
-                                             "default None")
+                                             "default 'None'")
 
     args = parser.parse_args()
     print(args)
