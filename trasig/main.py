@@ -388,7 +388,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', required=True, default='../output/', help="string, folder to put outputs")
     parser.add_argument('-d', '--project', required=True, help="string, project name")
     parser.add_argument('-g', '--preprocess', required=True, help="string, preprocessing steps applied to the "
-                                                                  "data / project, default None", default="None")
+                                                                  "data / project, default 'None'", default="None")
     parser.add_argument('-b', '--modelName', required=True, help="string, name of the trajectory model")
     parser.add_argument('-t', '--listType', required=False,
                         default='ligand_receptor', help="string, optional, "
