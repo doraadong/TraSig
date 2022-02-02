@@ -189,12 +189,12 @@ optional arguments:
                         ../trajectory/output/output.h5
   -g PREPROCESS, --preprocess PREPROCESS
                         string, preprocessing steps applied to the data /
-                        project, default None
+                        project, default 'None'
   -b MODELNAME, --modelName MODELNAME
                         string, name of the trajectory model
   -e OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
                         string, optional, other identifier for the output,
-                        default None
+                        default 'None'
   -c LISTTYPE, --listType LISTTYPE
                         string, optional, interaction list type, default
                         ligand_receptor
@@ -209,7 +209,7 @@ optional arguments:
   -yp PATHALIGN, --pathAlign PATHALIGN
                         string, optional, path to the alignment genes list,
                         set as 'None' if not doing alignment or using
-                        'interaction' for alignment, default None
+                        'interaction' for alignment, default 'None'
 
 ```
 
