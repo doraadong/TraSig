@@ -14,9 +14,6 @@ from scipy import stats
 """
 Optional parts skipped. See the tutorial for more details.
 
-Updates log:
-12-21-21: change the output name of the filtered expression, to include ligand-receptor list name
-
 """
 if __name__ == '__main__':
     # parse command-line arguments
@@ -34,6 +31,20 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--modelName', required=True, help="string, name of the trajectory model")
     parser.add_argument('-e', '--otherIdentifier', required=False,
                         default="None", help="string, optional, other identifier for the output, default None")
+    parser.add_argument('-c', '--listType', required=False,
+                        default='ligand_receptor', help="string, optional, interaction list type, "
+                                                        "default ligand_receptor")
+    parser.add_argument('-cp', '--pathLR', required=False,
+                        default="../ligand_receptor_lists/ligand_receptor_FANTOM.pickle",
+                        help="string, optional, path to the interaction list, "
+                             "default ../ligand_receptor_lists/ligand_receptor_FANTOM.pickle")
+    parser.add_argument('-y', '--genePairType', required=False,
+                        default='interaction', help="string, optional, identifier for the type of genes to align, "
+                                                    "e.g. interaction/cell_cycle, default interaction")
+    parser.add_argument('-yp', '--pathAlign', required=False,
+                        default="None", help="string, optional, path to the alignment genes list, "
+                                             "set as 'None' if not doing alignment or using 'interaction' for alignment, "
+                                             "default None")
 
     args = parser.parse_args()
     print(args)
@@ -46,6 +57,10 @@ if __name__ == '__main__':
     preprocess = args.preprocess
     model_name = args.modelName
     others = args.otherIdentifier
+    list_type = args.listType
+    lr_list_path = args.pathLR
+    gene_pair_type = args.genePairType
+    align_gene_path = args.pathAlign
 
     # specificy output names
     if preprocess != "None":
@@ -164,20 +179,30 @@ if __name__ == '__main__':
     with open(os.path.join(output_path, filename), 'wb') as handle:
         pickle.dump(hid_var, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    ## Subsetting expression data (to keep only ligand-receptors )
-    # get interaction file (list of (ligand, receptor))
-    lr_list_path = "../ligand_receptor_lists"
-    list_type = 'ligand_receptor'
-    filename = f"{list_type}_FANTOM.pickle"
-
-    with open(os.path.join(lr_list_path, filename), 'rb') as handle:
+    ## Subsetting expression data
+    ## filter expression data to keep only ligands and receptors (and genes used for alignment, if applicable)
+    ## interaction list should be a pickle file wiht a python list of tuple: (ligand, receptor)
+    ## alignment genes list should be a pickle file wiht a python list of string: gene
+    # get interaction file
+    with open(os.path.join(lr_list_path), 'rb') as handle:
         interaction_list = pickle.load(handle)
 
     ligands_receptors = np.unique([i[0] for i in interaction_list] + [i[1] for i in interaction_list])
 
+    # get align genes
+    if gene_pair_type != "None" and align_gene_path != "None":
+        # get align genes (list of genes)
+        with open(os.path.join(align_gene_path), 'rb') as handle:
+            align_genes = pickle.load(handle)
+
+        selected_genes = list(np.unique(list(ligands_receptors) + align_genes))
+    else:
+        align_genes = None
+        selected_genes = ligands_receptors
+
     # get list of genes identified as ligand or receptor
     genes_upper = [g.upper() for g in genes]
-    kepted_genes = list(set(genes_upper).intersection(set(ligands_receptors)))
+    kepted_genes = list(set(genes_upper).intersection(set(selected_genes)))
 
     df = pd.DataFrame(expression)
     df.columns = genes_upper
@@ -186,7 +211,11 @@ if __name__ == '__main__':
     df_sub = df[kepted_genes]
 
     # save filtered expression
-    filename = f"{project}{_preprocess}_{list_type}.txt"
+    if align_genes == None:
+        filename = f"{project}{_preprocess}_{list_type}.txt"
+    else:
+        filename = f"{project}{_preprocess}_{list_type}_{gene_pair_type}.txt"
+
     data_file = os.path.join(output_path, filename)
     df_sub.to_csv(data_file)
 
@@ -199,6 +228,18 @@ if __name__ == '__main__':
     filename = f"{list_type}_{project}{_preprocess}.pickle"
     with open(os.path.join(output_path, filename), 'wb') as handle:
         pickle.dump(filtered_interactions, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # save filtered align genes
+    if align_genes != None:
+        align_genes_filtered = list(set(kepted_genes).intersection(set(align_genes)))
+        if len(align_genes_filtered) == 0:
+            raise ValueError( f"No align genes expressed in the dataset! "
+                              f"Consider using another set of genes for alignment!")
+        else:
+            filename = f"align_{gene_pair_type}_filtered_{project}{_preprocess}.pickle"
+            with open(os.path.join(output_path, filename), 'wb') as handle:
+                pickle.dump(align_genes_filtered, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
     ## Save correspondence from sampling time to paths
     cell_ori_time = np.repeat(0, N)  # put all cells at time 0 if sampling time unknow
