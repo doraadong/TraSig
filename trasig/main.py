@@ -417,7 +417,8 @@ if __name__ == '__main__':
                                                   "options: unaligned/aligned-fixed/aligned-specific, "
                                                   "default unaligned")
     parser.add_argument('-y', '--genePairType', required=False,
-                        default='interaction', help="string, optional, genes to align, default interaction")
+                        default='interaction', help="string, optional, identifier for the type of genes to align, "
+                                                    "e.g. interaction/cell_cycle, default interaction")
     parser.add_argument('-f', '--smooth', required=False,
                         default=1, help="float, optional, smoothing parameter for splines, default 1")
     parser.add_argument('-v', '--overlap', required=False,
@@ -491,6 +492,8 @@ if __name__ == '__main__':
 
     # load expression data
     filename = f"{project}{_preprocess}_{list_type}.txt"
+    if align_type != "unaligned" and gene_pair_type != "interaction":
+        filename = f"{project}{_preprocess}_{list_type}_{gene_pair_type}.txt"
     print("Load: ", filename)
 
     data_file = os.path.join(input_path, filename)
@@ -537,7 +540,16 @@ if __name__ == '__main__':
         if gene_pair_type == "interaction":
             gene_pairs = interaction_list
         else:
-            raise NotImplementedError(f"Now only support interaction.")
+            # get alignment genes list
+            filename = f"align_{gene_pair_type}_filtered_{project}{_preprocess}.pickle"
+            with open(os.path.join(input_path, filename), 'rb') as handle:
+                align_genes = pickle.load(handle)
+
+            if len(align_genes) == 0:
+                raise ValueError(f"No align genes available! Consider using 'interaction' or another set of "
+                                 f"genes for alignment!")
+
+            gene_pairs = list(zip(align_genes, align_genes))
 
     else:
         pass
