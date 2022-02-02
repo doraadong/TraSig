@@ -173,6 +173,8 @@ The usage of this command is listed as follows:
 ```shell
 usage: prepare_inputs.py [-h] -i INPUT -o OUTPUT -d PROJECT -t TRAJECTORYFILE
                          -g PREPROCESS -b MODELNAME [-e OTHERIDENTIFIER]
+                         [-c LISTTYPE] [-cp PATHLR] [-y GENEPAIRTYPE]
+                         [-yp PATHALIGN]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -193,6 +195,21 @@ optional arguments:
   -e OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
                         string, optional, other identifier for the output,
                         default None
+  -c LISTTYPE, --listType LISTTYPE
+                        string, optional, interaction list type, default
+                        ligand_receptor
+  -cp PATHLR, --pathLR PATHLR
+                        string, optional, path to the interaction list,
+                        default
+                        ../ligand_receptor_lists/ligand_receptor_FANTOM.pickle
+  -y GENEPAIRTYPE, --genePairType GENEPAIRTYPE
+                        string, optional, identifier for the type of genes to
+                        align, e.g. interaction/cell_cycle, default
+                        interaction
+  -yp PATHALIGN, --pathAlign PATHALIGN
+                        string, optional, path to the alignment genes list,
+                        set as 'None' if not doing alignment or using
+                        'interaction' for alignment, default None
 
 ```
 
