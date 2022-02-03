@@ -220,15 +220,17 @@ optional arguments:
 Analyze outputs by (arguments are taken for example): 
 
 ```shell
-python analyze_outputs.py -i ../example/input -o ../example/output -d oligodendrocyte-differentiation-clusters_marques -g None -b ti_slingshot -e None -n 100000 -s smallerWindow
+python analyze_outputs.py -i ../example/input -o ../example/output -d oligodendrocyte-differentiation-clusters_marques -g None -p None -b ti_slingshot -p None -n 100000 -s smallerWindow
 ```
 The usage of this command is listed as follows:  
 
 ```shell
 usage: analyze_outputs.py [-h] -i INPUT -o OUTPUT -d PROJECT -g PREPROCESS -b
-                          MODELNAME [-t LISTTYPE] [-e OTHERIDENTIFIER]
+                          MODELNAME [-t LISTTYPE] [-p OTHERIDENTIFIER]
                           [-l NLAP] [-m METRIC] [-z NAN2ZERO] [-n NUMPERMS]
-                          [-s STARTINGTREATMENT]
+                          [-s STARTINGTREATMENT] [-a ALIGNTYPE]
+                          [-y GENEPAIRTYPE] [-f SMOOTH] [-v OVERLAP] [-r RATE]
+                          [-e ERRORTYPE] [-k ARATE] [-j BRATE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -246,7 +248,7 @@ optional arguments:
   -t LISTTYPE, --listType LISTTYPE
                         string, optional, interaction list type, default
                         ligand_receptor
-  -e OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
+  -p OTHERIDENTIFIER, --otherIdentifier OTHERIDENTIFIER
                         string, optional, other identifier for the output,
                         default None
   -l NLAP, --nLap NLAP  integer, optional, sliding window size, default 20
@@ -263,6 +265,31 @@ optional arguments:
                         None/parent/discard/smallerWindow, default
                         smallerWindow, need to provide an extra input
                         'path_info.pickle' for 'parent' option
+  -a ALIGNTYPE, --alignType ALIGNTYPE
+                        string, optional, how to align edges, options:
+                        unaligned/aligned-fixed/aligned-specific, default
+                        unaligned
+  -y GENEPAIRTYPE, --genePairType GENEPAIRTYPE
+                        string, optional, identifier for the type of genes to
+                        align, e.g. interaction/cell_cycle, default
+                        interaction
+  -f SMOOTH, --smooth SMOOTH
+                        float, optional, smoothing parameter for splines,
+                        default 1
+  -v OVERLAP, --overlap OVERLAP
+                        float, optional, overlap threshold for alignment,
+                        default 0.5
+  -r RATE, --rate RATE  integer, optional, sampling rate for aligned time
+                        points, default 1
+  -e ERRORTYPE, --errorType ERRORTYPE
+                        string, optional, type of distance metric for
+                        alignment (MSE, cosine or corr), default cosine
+  -k ARATE, --aRate ARATE
+                        float, optional, rate to sample parameter a for
+                        alignment, default 0.05
+  -j BRATE, --bRate BRATE
+                        float, optional, rate to sample parameter b for
+                        alignment, default 2.5
 
 ```
 
