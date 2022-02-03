@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--listType', required=False,
                         default='ligand_receptor', help="string, optional, "
                                                         "interaction list type, default ligand_receptor")
-    parser.add_argument('-e', '--otherIdentifier', required=False,
+    parser.add_argument('-p', '--otherIdentifier', required=False,
                         default="None", help="string, optional, other identifier for the output, default None")
     parser.add_argument('-l', '--nLap', required=False, default=20, help="integer, optional, "
                                                                          "sliding window size, default 20")
@@ -47,6 +47,27 @@ if __name__ == '__main__':
                                                       "None/parent/discard/smallerWindow, default smallerWindow, "
                                                       "need to provide an extra input 'path_info.pickle' "
                                                       "for 'parent' option")
+    # the following specifiy alignment related arguements
+    parser.add_argument('-a', '--alignType', required=False,
+                        default='unaligned', help="string, optional, how to align edges, "
+                                                  "options: unaligned/aligned-fixed/aligned-specific, "
+                                                  "default unaligned")
+    parser.add_argument('-y', '--genePairType', required=False,
+                        default='interaction', help="string, optional, identifier for the type of genes to align, "
+                                                    "e.g. interaction/cell_cycle, default interaction")
+    parser.add_argument('-f', '--smooth', required=False,
+                        default=1, help="float, optional, smoothing parameter for splines, default 1")
+    parser.add_argument('-v', '--overlap', required=False,
+                        default=0.5, help="float, optional, overlap threshold for alignment, default 0.5")
+    parser.add_argument('-r', '--rate', required=False,
+                        default=1, help="integer, optional, sampling rate for aligned time points, default 1")
+    parser.add_argument('-e', '--errorType', required=False, default="cosine",
+                        help="string, optional, type of distance metric for alignment (MSE, cosine or corr), "
+                             "default cosine")
+    parser.add_argument('-k', '--aRate', required=False,
+                        default=0.05, help="float, optional, rate to sample parameter a for alignment, default 0.05")
+    parser.add_argument('-j', '--bRate', required=False,
+                        default=2.5, help="float, optional, rate to sample parameter b for alignment, default 2.5")
 
     args = parser.parse_args()
     print(args)
@@ -80,10 +101,30 @@ if __name__ == '__main__':
     else:
         _startingTreatment = ""
 
+    # set parameters for alignment
+    align_type = args.alignType
+
+    if align_type != "unaligned":
+        SMOOTH_PARAMETER = float(args.smooth)
+        OVERLAP_THRESHOLD = float(args.overlap)
+        SAMPLING_RATE = int(args.rate)
+        gene_pair_type = args.genePairType
+        error_type = args.errorType
+        a_rate = float(args.aRate)
+        b_rate = float(args.bRate)
+
+    else:
+        pass
+
     ### load inputs
     suffix = f"{project}_{list_type}{_preprocess}_{model_name}"
     suffix = f"{suffix}{_startingTreatment}_nlap_{n_lap}{others}"
-    child_suffix = f"{suffix}_{metrics[0]}_{int(np.log10(num_perms))}"
+
+    # set parameters for alignment
+    if align_type != "unaligned":
+        suffix = f"{suffix}_{gene_pair_type}_{SMOOTH_PARAMETER}_{error_type}_{a_rate}_{b_rate}"
+    else:
+        pass
 
     # get interaction file (list of (ligand, receptor/target))
     filename = f"{list_type}_{project}{_preprocess}.pickle"
@@ -91,7 +132,9 @@ if __name__ == '__main__':
         interaction_list = pickle.load(handle)
 
     # load expression data
-    filename = f"{project}{_preprocess}_lr.txt"
+    filename = f"{project}{_preprocess}_{list_type}.txt"
+    if align_type != "unaligned" and gene_pair_type != "interaction":
+        filename = f"{project}{_preprocess}_{list_type}_{gene_pair_type}.txt"
     print("Load: ", filename)
 
     data_file = os.path.join(input_path, filename)
@@ -119,6 +162,9 @@ if __name__ == '__main__':
     all_times = [round(i, 2) for i in np.arange(0, 1.01, 0.01)]  # all possible labels for cell time
     cell_paths_o = hid_var["cell_path"]
     cell_times_o = hid_var["cell_time"]
+
+    # put time (from 0 to 1) into 101 bins
+    cell_times_o = np.round(cell_times_o, 2)
 
     ### load outputs
     # load the scores on the original data
@@ -148,6 +194,14 @@ if __name__ == '__main__':
     num_pairs = len(results[pair][m])
 
     # load permutation results
+    suffix = f"{suffix}_{int(np.log10(num_perms))}"
+    if align_type != "unaligned":
+        suffix = f"{suffix}_{align_type}"
+    else:
+        pass
+
+    child_suffix = f"{suffix}_{metrics[0]}"
+
     filename = f"{suffix}_permutation_results.pickle"
     data_file = os.path.join(output_path, filename)
 
@@ -186,7 +240,6 @@ if __name__ == '__main__':
 
     ## label clusters using the true labels of the majority of cells (for plotting)
     # build path2label
-
     unique_days = np.unique(hid_var['cell_labels'])
     cell_paths = np.unique(hid_var["cell_path"])
 
