@@ -325,7 +325,7 @@ After downloading the raw count matrices from our data repository (GSE159491), y
 Check our preprint at [biorxiv](https://www.biorxiv.org/content/10.1101/2021.07.28.454054v1). 
 
 # Credits
-The software is an implementation of the method TraSig, jointly developed by [Dora Li](https://github.com/doraadong), [Jun Ding](https://github.com/phoenixding) and Ziv Bar-Joseph from [System Biology Group @ Carnegie Mellon University](http://sb.cs.cmu.edu/). We also acknowledge Jeremy J. Velazquez, Joshua Hislop and Mo R. Ebrahimkhani from University of Pittsburgh for the fruitful discussions on method development. 
+The software is an implementation of the method TraSig, jointly developed by [Dongshunyi "Dora" Li](https://github.com/doraadong), [Jun Ding](https://github.com/phoenixding) and Ziv Bar-Joseph from [System Biology Group @ Carnegie Mellon University](http://sb.cs.cmu.edu/). We also acknowledge Jeremy J. Velazquez, Joshua Hislop and Mo R. Ebrahimkhani from University of Pittsburgh for the fruitful discussions on method development. 
 
 # Contacts
 * dongshul at andrew.cmu.edu 
